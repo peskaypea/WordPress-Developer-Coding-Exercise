@@ -27,18 +27,13 @@ function external_review_fetcher_shortcode(){
            return '<p>Error: Invalid JSON format returned from API.</p>';
        }
 
-        // Sanitize and validate user input
-        foreach ( $reviews['toplists']['575'] as &$review ) {
-            $review['logo'] = esc_url_raw( $review['logo'] );
-            $review['play_url'] = esc_url_raw( $review['play_url'] );
-            $review['brand_id'] = absint( $review['brand_id'] );
-            $review['info']['rating'] = floatval( $review['info']['rating'] );
-            $review['info']['bonus'] = sanitize_text_field( $review['info']['bonus'] );
-            $review['terms_and_conditions'] = wp_kses_post( $review['terms_and_conditions'] );
-            foreach ( $review['info']['features'] as &$feature ) {
-                $feature = sanitize_text_field( $feature );
-            }
-        }
+  
+
+          // Sort reviews by position key
+          usort( $reviews['toplists']['575'], function( $a, $b ) {
+            return $a['position'] - $b['position'];
+        } );
+        
 
        // Cache the data for future use
        wp_cache_set( $cache_key, $reviews, '', 60 * 60 * 6 ); // cache for 6 hours
@@ -47,10 +42,12 @@ function external_review_fetcher_shortcode(){
     $reviews = $cache;
 }
 
+
 // Generate HTML for reviews
 if ( ! empty( $reviews ) && isset( $reviews['toplists']['575'] ) ) {
     function generate_star_rating_html($rating) {
         // Generate star rating HTML based on rating value
+        
         $html = '';
         $checked_stars = min(round($rating), 5);
         for ($i = 0; $i < $checked_stars; $i++) {
@@ -111,6 +108,7 @@ if ( ! empty( $reviews ) && isset( $reviews['toplists']['575'] ) ) {
 }
 
 return $html;
+
 }
 
 function myplugin_enqueue_styles() {
