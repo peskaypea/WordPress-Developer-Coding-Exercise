@@ -46,4 +46,76 @@ function external_review_fetcher_shortcode(){
     // Data is cached, use it instead of fetching from API
     $reviews = $cache;
 }
+
+// Generate HTML for reviews
+if ( ! empty( $reviews ) && isset( $reviews['toplists']['575'] ) ) {
+    function generate_star_rating_html($rating) {
+        // Generate star rating HTML based on rating value
+        $html = '';
+        $checked_stars = min(round($rating), 5);
+        for ($i = 0; $i < $checked_stars; $i++) {
+            $html .= '<span class="fa fa-star checked"></span>';
+        }
+        for ($i = $checked_stars; $i < 5; $i++) {
+            $html .= '<span class="far fa-star unchecked"></span>';
+        }
+        return $html;
+    }
+
+    $html = '<div>';
+    $html .= '<div class="igame-container">';
+    $html .= '<header class="igame-header">';
+    $html .= '<p>Casino</p>';
+    $html .= '<p>Bonus</p>';
+    $html .= '<p>Features</p>';
+    $html .= '<p>Play</p>';
+    $html .= '</header>';
+
+    // Loop through reviews and generate HTML for each review
+    foreach ( $reviews['toplists']['575'] as $review ) {
+        $html .= '<div class="igame-columns">';
+        $html .= '<div class="igame-col-1">';
+        $html .= '<img class="igame-img" src="' . $review['logo'] . '"/>';
+        $html .= '<a class="igame-review" href="' . $review['play_url'] . '/'. $review['brand_id'] . '">'
+        .'Review</a>';
+        $html .= '</div>';
+
+        $html .= '<div class="igame-col-2">';
+        $html .= '<div>';
+        $html .= generate_star_rating_html($review['info']['rating']);
+        $html .= '</div>';
+        $html .= '<p class="igame-col-2-p">' . $review['info']['bonus'] . '</p>';
+        $html .= '</div>';
+
+        $html .= '<div class="igame-col-3">';
+        $html .= '<ul class="igame-col-3-ul">';
+        foreach ( $review['info']['features'] as $feature ) {
+            $html .= '<li>' . $feature . '</li>';
+        };
+        $html .= '</ul>';
+        $html .= '</div>';
+
+        $html .= '<div class="igame-col-4">';
+        $html .= '<a href="' . $review['play_url'] .'">';
+        $html .= '<button class="igame-col-4-button">Play Now</button>';
+        $html .= '</a>';
+        $html .= '<p class="igame-col-4-p">' . $review['terms_and_conditions'] . '</p>';
+        $html .= '</div>';
+
+        $html .= '</div>';
+    }
+    $html .= '</div>';
+    $html .= '</div>';
+} else {
+    $html = '<p>No reviews found.</p>';
 }
+
+return $html;
+}
+
+function myplugin_enqueue_styles() {
+wp_enqueue_style( 'myplugin-style', plugin_dir_url( __FILE__ ) . 'style.css' );
+wp_enqueue_style( 'fontawesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css' );
+}
+add_action( 'wp_enqueue_scripts', 'myplugin_enqueue_styles' );
+add_shortcode( 'external_review_fetcher', 'external_review_fetcher_shortcode' );
